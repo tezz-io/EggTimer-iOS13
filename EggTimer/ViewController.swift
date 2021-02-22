@@ -11,6 +11,14 @@
 // Large Egg = 12 min
 import UIKit
 import AVFoundation
+import SwiftUI
+
+let totalScreenWidth = UIScreen.main.bounds.width
+let totalScreenHeight = UIScreen.main.bounds.height
+
+
+
+
 
 class ViewController: UIViewController {
     
@@ -24,12 +32,11 @@ class ViewController: UIViewController {
     var descLabel = UILabel()
     var footNoteLabel = UILabel()
     var timerTextLabel = UILabel()
-    var timerMinutesLabel = UILabel()
-    var timerSecondsLabel = UILabel()
-    var colonLabel = UILabel()
-    var outputLabel = UILabel()
+    
+    var progressBarHostingController = UIHostingController(rootView: ProgressBarView(progressValue: 0.0, timer: "00:00", width: totalScreenWidth / 3, height: totalScreenWidth / 3, isLightMode: true))
     
     var contrastModeButton = UIButton()
+
     
     let eggQuotes = [
         "truth and eggs are useful only while they are fresh\n-austin o'malley",
@@ -66,6 +73,11 @@ class ViewController: UIViewController {
         let screenWidth = UIScreen.main.bounds.width - 32
         let screenHeight = UIScreen.main.bounds.height - 32
         
+        progressBarHostingController = UIHostingController(rootView: ProgressBarView(progressValue: 0.0, timer: "00:00", width: screenWidth / 3, height: screenWidth / 3, isLightMode: isLightMode))
+        
+        setSwiftUIView(progressBarHostingController)
+        setAutoConstraints(someView: progressBarHostingController.view!, width: totalScreenWidth / 3, height: totalScreenWidth / 3, xOffset: screenWidth / 12, yOffset: screenHeight / 10, xRelative: false, yRelative: true, xLeading: true, yTop: false)
+        
         setTitleLabel()
         
         setDescLabel()
@@ -74,12 +86,6 @@ class ViewController: UIViewController {
         
         setTimerTextLabel()
         
-        setOutputLabel()
-        
-        setLabel(label: timerMinutesLabel, xOffset: 0.0)
-        setLabel(label: timerSecondsLabel, xOffset: screenWidth - screenWidth / 2.3)
-        
-        setColonLabel(label: colonLabel)
         
         updateContrastModeButton()
         
@@ -98,25 +104,38 @@ class ViewController: UIViewController {
     }
     
     @objc func hardnessSelected(_ sender: UIButton) {
+        
+        timerTextLabel.text = "Your egg will be ready in:"
+        
         let hardnessSelected = sender.currentTitle!
         
-        outputLabel.text = "Waiting..."
+        let screenWidth = UIScreen.main.bounds.width - 32
+        let screenHeight = UIScreen.main.bounds.height - 32
+        
         timer.invalidate()
         
-        var totalTime = eggTimes[hardnessSelected]! * 60
+        let totalTime = eggTimes[hardnessSelected]! * 60
+        var time = eggTimes[hardnessSelected]! * 60
+        
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { t in
             
-            let min = totalTime / 60
-            let sec = totalTime % 60
+            let min = time / 60
+            let sec = time % 60
             
-            self.timerMinutesLabel.text? = min > 9 ? "\(min)" : "0\(min)"
-            self.timerSecondsLabel.text? = sec > 9 ? "\(sec)" : "0\(sec)"
+            time -= 1
             
-            totalTime -= 1
+            self.progressBarHostingController.view!.removeFromSuperview()
             
-            if totalTime == -1 {
+            self.progressBarHostingController = UIHostingController(rootView: ProgressBarView(progressValue: Float((totalTime - time)) / Float(totalTime), timer: (min > 9 ? "\(min)" : "0\(min)") + ":" + (sec > 9 ? "\(sec)" : "0\(sec)"), width: screenWidth / 3, height: screenWidth / 3, isLightMode: self.isLightMode))
+            
+            self.setSwiftUIView(self.progressBarHostingController)
+            self.setAutoConstraints(someView: self.progressBarHostingController.view!, width: totalScreenWidth / 3, height: totalScreenWidth / 3, xOffset: screenWidth / 12, yOffset: screenHeight / 10, xRelative: false, yRelative: true, xLeading: true, yTop: false)
+            
+            
+            if time == -1 {
                 t.invalidate()
-                self.outputLabel.text = "Your egg has been boiled"
+                
+                self.timerTextLabel.text = "Your egg is ready!"
                 
                 let path = Bundle.main.path(forResource: "alarm_sound.mp3", ofType: nil)!
                 let url = URL(fileURLWithPath: path)
@@ -268,51 +287,26 @@ class ViewController: UIViewController {
         let screenWidth = view.safeAreaLayoutGuide.layoutFrame.width - 32
         let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height - 32
         
-        timerTextLabel.text = "Your Egg will be ready in:"
+        timerTextLabel.text = "Select the type of egg you prefer"
         timerTextLabel.numberOfLines = 0
         timerTextLabel.textColor = isLightMode ? .darkGray : UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
         timerTextLabel.font = UIFont(name: "AvenirNext-Bold", size: screenWidth / 18 + 1)
         timerTextLabel.textAlignment = .center
         self.view.addSubview(timerTextLabel)
-        setAutoConstraints(someView: timerTextLabel, width: screenWidth, height: screenHeight / 6, xOffset: 0.0, yOffset: screenHeight / 4, xRelative: true, yRelative: true, xLeading: true, yTop: false)
-    }
-    
-    fileprivate func setOutputLabel() {
-        let screenWidth = view.safeAreaLayoutGuide.layoutFrame.width - 32
-        let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height - 32
-        
-        outputLabel.text = ""
-        outputLabel.numberOfLines = 0
-        outputLabel.textColor = isLightMode ? .darkGray : UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
-        outputLabel.font = UIFont(name: "AvenirNext-Bold", size: screenWidth / 18 + 1)
-        outputLabel.textAlignment = .center
-        self.view.addSubview(outputLabel)
-        setAutoConstraints(someView: outputLabel, width: screenWidth, height: screenHeight / 8, xOffset: 0.0, yOffset: screenHeight / 11, xRelative: true, yRelative: true, xLeading: true, yTop: false)
+        setAutoConstraints(someView: timerTextLabel, width: screenWidth, height: screenHeight / 5, xOffset: 0.0, yOffset: screenHeight / 20 + totalScreenWidth / 3, xRelative: true, yRelative: true, xLeading: true, yTop: false)
     }
     
     fileprivate func setLabel(label: UILabel, xOffset: CGFloat) {
         let screenWidth = view.safeAreaLayoutGuide.layoutFrame.width - 32
         let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height - 32
         
-        label.text = "00"
+        label.text = "00:00"
         label.numberOfLines = 0
-        label.textColor = isLightMode ? .darkGray : UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
-        label.font = UIFont(name: "AvenirNext-Bold", size: screenWidth / 5 + 1)
-        label.textAlignment = xOffset == 0.0 ? .right : .left
-        self.view.addSubview(label)
-        setAutoConstraints(someView: label, width: screenWidth / 2.3, height: screenHeight / 8, xOffset: xOffset, yOffset: screenHeight / 6, xRelative: true, yRelative: true, xLeading: true, yTop: false)
-    }
-    
-    fileprivate func setColonLabel(label: UILabel) {
-        let screenWidth = view.safeAreaLayoutGuide.layoutFrame.width - 32
-        let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height - 32
-        
-        label.text = ":"
         label.textColor = isLightMode ? .darkGray : UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
         label.font = UIFont(name: "AvenirNext-Bold", size: screenWidth / 5 + 1)
         label.textAlignment = .center
         self.view.addSubview(label)
-        setAutoConstraints(someView: label, width: screenWidth, height: screenHeight / 7.5, xOffset: 0.0, yOffset: screenHeight / 6, xRelative: false, yRelative: true, xLeading: true, yTop: false)
+        setAutoConstraints(someView: label, width: screenWidth, height: screenHeight / 8, xOffset: xOffset, yOffset: screenHeight / 6, xRelative: false, yRelative: true, xLeading: true, yTop: false)
     }
 
     func createButton(title: String, image: UIImage) -> UIButton {
@@ -341,6 +335,15 @@ class ViewController: UIViewController {
         return label
     }
     
+    fileprivate func setSwiftUIView(_ child: UIHostingController<ProgressBarView>) {
+            child.view.translatesAutoresizingMaskIntoConstraints = false
+            child.view.frame = self.view.bounds
+            // First, add the view of the child to the view of the parent
+            self.view.addSubview(child.view)
+            // Then, add the child to the parent
+            self.addChild(child)
+        }
+    
     func updateContrastModeButton() {
         let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height - 32
         
@@ -356,6 +359,9 @@ class ViewController: UIViewController {
     }
         
     @objc func contrastModeToggled(_ sender: UIButton) {
+        let screenWidth = UIScreen.main.bounds.width - 32
+        let screenHeight = UIScreen.main.bounds.height - 32
+        
         self.isLightMode.toggle()
         overrideUserInterfaceStyle = isLightMode ? .light : .dark
         self.view.backgroundColor = isLightMode ? .white : .black
@@ -364,6 +370,13 @@ class ViewController: UIViewController {
         descLabel.textColor = isLightMode ? .darkGray : UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
         footNoteLabel.textColor = isLightMode ? .darkGray : UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
         timerTextLabel.textColor = isLightMode ? .darkGray : UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
+        
+        self.progressBarHostingController.view!.removeFromSuperview()
+        
+        self.progressBarHostingController = UIHostingController(rootView: ProgressBarView(progressValue: self.progressBarHostingController.rootView.progressValue, timer: self.progressBarHostingController.rootView.timer, width: self.progressBarHostingController.rootView.width, height: self.progressBarHostingController.rootView.height, isLightMode: self.isLightMode))
+        
+        self.setSwiftUIView(self.progressBarHostingController)
+        self.setAutoConstraints(someView: self.progressBarHostingController.view!, width: totalScreenWidth / 3, height: totalScreenWidth / 3, xOffset: screenWidth / 12, yOffset: screenHeight / 10, xRelative: false, yRelative: true, xLeading: true, yTop: false)
         
         contrastModeButton.setImage(UIImage(systemName: isLightMode ? "moon.fill" : "sun.max.fill"), for: .normal)
         contrastModeButton.imageView?.tintColor = isLightMode ? .white : .black

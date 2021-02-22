@@ -1,0 +1,6 @@
+framework module ProgressBarKit {
+  umbrella header "ProgressBarKit-umbrella.h"
+
+  export *
+  module * { export * }
+}

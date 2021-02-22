@@ -1,0 +1,16 @@
+PODS:
+  - ProgressBarKit (1.2.1)
+
+DEPENDENCIES:
+  - ProgressBarKit
+
+SPEC REPOS:
+  trunk:
+    - ProgressBarKit
+
+SPEC CHECKSUMS:
+  ProgressBarKit: d4b2ee2de03716b085eee295e5fd12a26ee7111f
+
+PODFILE CHECKSUM: 3428212d51a442d4fe728c5cbe53b231eb22c397
+
+COCOAPODS: 1.10.1
